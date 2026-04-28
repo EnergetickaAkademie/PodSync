@@ -3,20 +3,27 @@
 
 #define CLK PC1
 #define DAT PC2
+#define LED_PIN PC0
 
 enum BusCommand {
 	CMD_DISCOVER = 0x01,
 	CMD_ASSIGN_ID = 0x02,
 	CMD_POLL_DATA = 0x03,
 	CMD_SET_STATE = 0x04,
-	CMD_PING = 0x05
+	CMD_PING = 0x05,
+	CMD_LED_BLINK = 0x06,
+	CMD_RAPID_BLINK = 0x07
 };
 
 enum DeviceType {
 	TYPE_UNKNOWN = 0,
-	TYPE_PVE = 1,
-	TYPE_NPP = 2,
-	TYPE_GAS = 3
+	TYPE_NPP = 1,
+	TYPE_GAS = 2,
+	TYPE_BATTERY = 3,
+	TYPE_COAL = 4,
+	TYPE_WIND = 5,
+	TYPE_HYDRO = 6,
+	TYPE_HYDRO_PUMPED = 7
 };
 
 const int DELAY_BIT_US = 200;

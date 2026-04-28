@@ -8,6 +8,7 @@ private:
 	uint8_t device_type;
 	uint32_t device_uid;
 	uint32_t last_comm_ms = 0;
+	void (*command_callback)(uint8_t cmd, const uint8_t* payload, uint8_t len) = nullptr;
 
 	uint8_t readByte() {
 		uint8_t b = 0;
@@ -60,6 +61,14 @@ public:
 		last_comm_ms = millis();
 	}
 
+	void setCommandCallback(void (*callback)(uint8_t cmd, const uint8_t* payload, uint8_t len)) {
+		command_callback = callback;
+	}
+
+	uint8_t getDeviceType() const {
+		return device_type;
+	}
+
 	void listen() {
 		if (local_id != 0 && (millis() - last_comm_ms > TIMEOUT_DISCONNECT_MS)) {
 			Serial.println("[SLAVE] Master lost. Resetting ID.");
@@ -106,6 +115,12 @@ public:
 				}
 				else if (cmd == CMD_PING && target_id == local_id) {
 					respondPacket(nullptr, 0);
+				}
+				else if (target_id == local_id) {
+					if (command_callback != nullptr) {
+						command_callback(cmd, payload, len);
+					}
+					// No response by default for application-level commands.
 				}
 			}
 		}

@@ -162,4 +162,21 @@ public:
 		pingDevices();
 		delay(50);
 	}
+
+	uint8_t getActiveCount() const {
+		uint8_t count = 0;
+		for (int i = 0; i < 12; i++) {
+			if (slaves[i].active) count++;
+		}
+		return count;
+	}
+
+	void sendCommandToAll(uint8_t cmd, uint8_t* payload, uint8_t len) {
+		for (int i = 0; i < 12; i++) {
+			if (slaves[i].active) {
+				sendPacket(slaves[i].id, cmd, payload, len);
+				delay(100);
+			}
+		}
+	}
 };
