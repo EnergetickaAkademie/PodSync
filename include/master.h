@@ -171,9 +171,38 @@ public:
 		return count;
 	}
 
+	uint8_t getActiveCountByType(uint8_t type) const {
+		uint8_t count = 0;
+		for (int i = 0; i < 12; i++) {
+			if (slaves[i].active && slaves[i].type == type) count++;
+		}
+		return count;
+	}
+
+	void getActiveCountsByType(uint8_t* outCounts, size_t len) const {
+		if (outCounts == nullptr || len == 0) return;
+		for (size_t i = 0; i < len; i++) outCounts[i] = 0;
+		for (int i = 0; i < 12; i++) {
+			if (!slaves[i].active) continue;
+			uint8_t type = slaves[i].type;
+			if (type >= 1 && type <= len) {
+				outCounts[type - 1]++;
+			}
+		}
+	}
+
 	void sendCommandToAll(uint8_t cmd, uint8_t* payload, uint8_t len) {
 		for (int i = 0; i < 12; i++) {
 			if (slaves[i].active) {
+				sendPacket(slaves[i].id, cmd, payload, len);
+				delay(100);
+			}
+		}
+	}
+
+	void sendCommandToType(uint8_t type, uint8_t cmd, uint8_t* payload, uint8_t len) {
+		for (int i = 0; i < 12; i++) {
+			if (slaves[i].active && slaves[i].type == type) {
 				sendPacket(slaves[i].id, cmd, payload, len);
 				delay(100);
 			}
