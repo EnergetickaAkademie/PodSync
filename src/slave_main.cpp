@@ -11,6 +11,11 @@ BusSlave slave(TYPE_NPP, DEVICE_UID);
 PeripheralFactory factory;
 LED* led = nullptr;
 
+bool motor_on = false;
+uint8_t rgb_r = 0;
+uint8_t rgb_g = 0;
+uint8_t rgb_b = 0;
+
 const uint32_t BLINK_ON_MS = 120;
 const uint32_t BLINK_OFF_MS = 120;
 const uint32_t RAPID_BLINK_INTERVAL_MS = 80;
@@ -67,6 +72,24 @@ void stopRapidMode() {
 	rapid_mode = false;
 }
 
+void setMotorState(bool on) {
+	motor_on = on;
+	Serial.print("[SLAVE] MOTOR ");
+	Serial.println(motor_on ? "ON" : "OFF");
+}
+
+void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
+	rgb_r = r;
+	rgb_g = g;
+	rgb_b = b;
+	Serial.print("[SLAVE] RGB set to ");
+	Serial.print(rgb_r);
+	Serial.print(",");
+	Serial.print(rgb_g);
+	Serial.print(",");
+	Serial.println(rgb_b);
+}
+
 void updateBlinkSequence() {
 	if (!sequence.active || led == nullptr) return;
 	uint32_t interval = sequence.led_on ? BLINK_ON_MS : BLINK_OFF_MS;
@@ -111,6 +134,19 @@ void handleCommand(uint8_t cmd, const uint8_t* payload, uint8_t len) {
 		rapid_mode = true;
 		Serial.println("[SLAVE] RAPID_BLINK received");
 	}
+	else if (cmd == CMD_MOTOR_ON) {
+		setMotorState(true);
+	}
+	else if (cmd == CMD_MOTOR_OFF) {
+		setMotorState(false);
+	}
+	else if (cmd == CMD_RGB) {
+		if (len >= 3) {
+			setRgbColor(payload[0], payload[1], payload[2]);
+		} else {
+			Serial.println("[SLAVE] RGB command requires 3 bytes");
+		}
+	}
 }
 
 void setup() {
@@ -125,7 +161,7 @@ void setup() {
 	Serial.println(getTypeName(slave.getDeviceType()));
 	Serial.print("UID: 0x");
 	Serial.println(DEVICE_UID, HEX);
-	Serial.println("Waiting for LED_BLINK/RAPID_BLINK commands from master...");
+	Serial.println("Waiting for LED_BLINK/RAPID_BLINK/MOTOR/RGB commands from master...");
 }
 
 void loop() {

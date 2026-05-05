@@ -12,7 +12,10 @@ enum BusCommand {
 	CMD_SET_STATE = 0x04,
 	CMD_PING = 0x05,
 	CMD_LED_BLINK = 0x06,
-	CMD_RAPID_BLINK = 0x07
+	CMD_RAPID_BLINK = 0x07,
+	CMD_MOTOR_ON = 0x08,
+	CMD_MOTOR_OFF = 0x09,
+	CMD_RGB = 0x0A
 };
 
 enum DeviceType {
