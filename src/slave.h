@@ -69,6 +69,10 @@ public:
 		return device_type;
 	}
 
+	uint8_t getId() const {
+		return local_id;
+	}
+
 	void listen() {
 		if (local_id != 0 && (millis() - last_comm_ms > TIMEOUT_DISCONNECT_MS)) {
 			Serial.println("[SLAVE] Master lost. Resetting ID.");
