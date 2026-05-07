@@ -114,6 +114,7 @@ private:
 				
 				sendPacket(0, CMD_ASSIGN_ID, payload, 5);
 				
+				/*
 				Serial.print("[MASTER] Assigned ID ");
 				Serial.print(target_id);
 				Serial.print(" to Type ");
@@ -121,6 +122,7 @@ private:
 				Serial.print(" (UID: 0x");
 				Serial.print(uid, HEX);
 				Serial.println(")");
+				*/
 			}
 		}
 	}
@@ -138,8 +140,8 @@ private:
 					slaves[i].last_seen_ms = now;
 				} else if (now - slaves[i].last_seen_ms > TIMEOUT_DISCONNECT_MS) {
 					slaves[i].active = false;
-					Serial.print("[MASTER] Device disconnected: ID ");
-					Serial.println(slaves[i].id);
+					//Serial.print("[MASTER] Device disconnected: ID ");
+					//Serial.println(slaves[i].id);
 				}
 			}
 		}
