@@ -14,6 +14,17 @@ class BusMaster {
 private:
 	SlaveDevice slaves[12];
 
+	enum MasterState {
+		STATE_DISCOVER,
+		STATE_GAP_AFTER_DISCOVER,
+		STATE_PING,
+		STATE_GAP_AFTER_PING
+	};
+	MasterState state = STATE_DISCOVER;
+	uint32_t lastActionMs = 0;
+	static const uint32_t GAP_AFTER_DISCOVER_MS = 50;
+	static const uint32_t GAP_AFTER_PING_MS     = 50;
+
 	void sendByte(uint8_t b) {
 		for (int8_t i = 7; i >= 0; i--) {
 			digitalWrite(CLK, LOW);
@@ -69,31 +80,30 @@ private:
 		uint8_t crc_data[18];
 		crc_data[0] = *len;
 		if (*len > 0) memcpy(&crc_data[1], buffer, *len);
-		
+
 		return calculateCRC(crc_data, *len + 1) == crc;
 	}
 
 	void pollDiscovery() {
 		sendPacket(0, CMD_DISCOVER, nullptr, 0);
-		
+
 		uint8_t buf[16];
 		uint8_t len = 0;
-		
+
 		if (readPacket(buf, &len) && len >= 5) {
-			delay(5); 
 			uint8_t type = buf[0];
 			uint32_t uid;
 			memcpy(&uid, &buf[1], 4);
-			
+
 			uint8_t target_id = 0;
-			
+
 			for (int i = 0; i < 12; i++) {
 				if (slaves[i].active && slaves[i].uid == uid) {
 					target_id = slaves[i].id;
 					break;
 				}
 			}
-			
+
 			if (target_id == 0) {
 				for (int i = 0; i < 12; i++) {
 					if (!slaves[i].active) {
@@ -106,23 +116,13 @@ private:
 					}
 				}
 			}
-			
+
 			if (target_id != 0) {
 				uint8_t payload[5];
 				payload[0] = target_id;
 				memcpy(&payload[1], &uid, 4);
-				
+
 				sendPacket(0, CMD_ASSIGN_ID, payload, 5);
-				
-				/*
-				Serial.print("[MASTER] Assigned ID ");
-				Serial.print(target_id);
-				Serial.print(" to Type ");
-				Serial.print(type);
-				Serial.print(" (UID: 0x");
-				Serial.print(uid, HEX);
-				Serial.println(")");
-				*/
 			}
 		}
 	}
@@ -132,16 +132,14 @@ private:
 		for (int i = 0; i < 12; i++) {
 			if (slaves[i].active) {
 				sendPacket(slaves[i].id, CMD_PING, nullptr, 0);
-				
+
 				uint8_t buf[16];
 				uint8_t len = 0;
-				
+
 				if (readPacket(buf, &len)) {
 					slaves[i].last_seen_ms = now;
 				} else if (now - slaves[i].last_seen_ms > TIMEOUT_DISCONNECT_MS) {
 					slaves[i].active = false;
-					//Serial.print("[MASTER] Device disconnected: ID ");
-					//Serial.println(slaves[i].id);
 				}
 			}
 		}
@@ -159,10 +157,33 @@ public:
 	}
 
 	void loop() {
-		pollDiscovery();
-		delay(50);
-		pingDevices();
-		delay(50);
+		uint32_t now = millis();
+
+		switch (state) {
+			case STATE_DISCOVER:
+				pollDiscovery();
+				lastActionMs = now;
+				state = STATE_GAP_AFTER_DISCOVER;
+				break;
+
+			case STATE_GAP_AFTER_DISCOVER:
+				if (now - lastActionMs >= GAP_AFTER_DISCOVER_MS) {
+					state = STATE_PING;
+				}
+				break;
+
+			case STATE_PING:
+				pingDevices();
+				lastActionMs = now;
+				state = STATE_GAP_AFTER_PING;
+				break;
+
+			case STATE_GAP_AFTER_PING:
+				if (now - lastActionMs >= GAP_AFTER_PING_MS) {
+					state = STATE_DISCOVER;
+				}
+				break;
+		}
 	}
 
 	uint8_t getActiveCount() const {
@@ -197,7 +218,6 @@ public:
 		for (int i = 0; i < 12; i++) {
 			if (slaves[i].active) {
 				sendPacket(slaves[i].id, cmd, payload, len);
-				delay(100);
 			}
 		}
 	}
@@ -206,7 +226,6 @@ public:
 		for (int i = 0; i < 12; i++) {
 			if (slaves[i].active && slaves[i].type == type) {
 				sendPacket(slaves[i].id, cmd, payload, len);
-				delay(100);
 			}
 		}
 	}
