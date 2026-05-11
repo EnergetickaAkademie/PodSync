@@ -58,6 +58,7 @@ public:
 		pinMode(CLK, INPUT);
 		pinMode(DAT, INPUT);
 		last_comm_ms = millis();
+		randomSeed(device_uid);
 	}
 
 	void setCommandCallback(void (*callback)(uint8_t cmd, const uint8_t* payload, uint8_t len)) {
@@ -101,10 +102,12 @@ public:
 				last_comm_ms = millis();
 
 				if (cmd == CMD_DISCOVER && local_id == 0) {
-					uint8_t resp[5];
-					resp[0] = device_type;
-					memcpy(&resp[1], &device_uid, 4);
-					respondPacket(resp, 5);
+					if (random(10) < 3) {
+						uint8_t resp[5];
+						resp[0] = device_type;
+						memcpy(&resp[1], &device_uid, 4);
+						respondPacket(resp, 5);
+					}
 				}
 				else if (cmd == CMD_ASSIGN_ID && local_id == 0) {
 					uint32_t target_uid;
