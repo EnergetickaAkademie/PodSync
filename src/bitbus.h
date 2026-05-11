@@ -26,7 +26,8 @@ enum DeviceType {
 	TYPE_COAL = 4,
 	TYPE_WIND = 5,
 	TYPE_HYDRO = 6,
-	TYPE_HYDRO_PUMPED = 7
+	TYPE_HYDRO_PUMPED = 7,
+	TYPE_SOLAR = 8
 };
 
 const int DELAY_BIT_US = 200;
