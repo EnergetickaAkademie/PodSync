@@ -20,14 +20,14 @@ enum BusCommand {
 
 enum DeviceType {
 	TYPE_UNKNOWN = 0,
-	TYPE_NPP = 1,
-	TYPE_GAS = 2,
-	TYPE_BATTERY = 3,
-	TYPE_COAL = 4,
-	TYPE_WIND = 5,
-	TYPE_HYDRO = 6,
-	TYPE_HYDRO_PUMPED = 7,
-	TYPE_SOLAR = 8
+	TYPE_SOLAR = 1,
+	TYPE_WIND = 2,
+	TYPE_NPP = 3,
+	TYPE_GAS = 4,
+	TYPE_HYDRO = 5,
+	TYPE_HYDRO_PUMPED = 6,
+	TYPE_COAL = 7,
+	TYPE_BATTERY = 8
 };
 
 const int DELAY_BIT_US = 200;
